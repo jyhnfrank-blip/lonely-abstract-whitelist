@@ -1,0 +1,224 @@
+﻿<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Lonely On Abstract Whitelist - Complete Tasks to Secure GTD Spot</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        @keyframes pixel-glow {
+            0% {
+                box-shadow: 0 0 5px #00ffb2;
+            }
+
+            50% {
+                box-shadow: 0 0 15px #00ffb2;
+            }
+
+            100% {
+                box-shadow: 0 0 5px #00ffb2;
+            }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: radial-gradient(circle at top, #0a0a0a, #000);
+            color: #eaeaea;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #111;
+            border: 2px solid #2f2f2f;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 0 20px #00ffb250;
+            animation: pixel-glow 3s infinite;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ffb2;
+            text-shadow: 0 0 4px #00ffb2;
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-weight: bold;
+        }
+
+        input[type=email], input[type=text] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #1b1b1b;
+            color: #eee;
+        }
+
+        input[readonly] {
+            opacity: 0.6;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+            .toggle input {
+                margin-right: 10px;
+            }
+
+            .toggle label a {
+                color: #00ffb2;
+                text-decoration: none;
+            }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #00ffb2;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            button:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+        .msg {
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        #closedMsg {
+            text-align: center;
+            color: #ff4f4f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lonely On Abstract Whitelist<br>Complete Tasks to Secure GTD Spot</h1>
+
+        <div id="formArea">
+            <label>Email (mandatory)</label>
+            <input type="email" id="email" placeholder="you@example.com" required>
+
+            <div class="toggle">
+                <input type="checkbox" id="follow">
+                <label for="follow">Follow <a href="https://x.com/LONELYstrakt" target="_blank">@LONELYstrakt</a></label>
+            </div>
+
+            <div class="toggle">
+                <input type="checkbox" id="retweet">
+                <label for="retweet">Like and Retweet <a href="#" id="tweetlink" target="_blank">(post link)</a></label>
+            </div>
+
+            <label>Submit your X username</label>
+            <input type="text" id="xusername" placeholder="@username" required>
+
+            <label>Submit your AGW/EVM wallet</label>
+            <input type="text" id="wallet" placeholder="0x..." required>
+
+            <button id="submitBtn" disabled>Submit Entry</button>
+            <div class="msg" id="msg"></div>
+        </div>
+
+        <div id="closedMsg" style="display:none;">
+            🚫 Submissions closed — limit reached. Thank you!
+        </div>
+    </div>
+
+    <script>
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbwKIJzRxPasg3ZgF8y8f6EPbAip7c7b9J18QgdiKdYMBkllnFU090Vzrgm-lGEHxWLw/exec";
+        let isOpen = true;
+
+        async function checkStatus() {
+            try {
+                const r = await fetch(ENDPOINT);
+                const j = await r.json();
+                if (!j.ok || !j.open) {
+                    isOpen = false;
+                    document.getElementById("formArea").style.display = "none";
+                    document.getElementById("closedMsg").style.display = "block";
+                }
+            } catch {
+                // ignore fetch errors, assume open
+            }
+        }
+        checkStatus();
+
+        // email from URL param (pinned)
+        const params = new URLSearchParams(window.location.search);
+        const presetEmail = params.get("email");
+        if (presetEmail) {
+            const em = document.getElementById("email");
+            em.value = presetEmail;
+            em.readOnly = true;
+        }
+
+        const btn = document.getElementById("submitBtn");
+        const inputs = document.querySelectorAll("input");
+        inputs.forEach(i => i.addEventListener("input", updateBtn));
+
+        function updateBtn() {
+            const ok = document.getElementById("email").value &&
+                document.getElementById("follow").checked &&
+                document.getElementById("retweet").checked &&
+                document.getElementById("xusername").value &&
+                document.getElementById("wallet").value;
+            btn.disabled = !ok || !isOpen;
+        }
+
+        btn.onclick = async () => {
+            const msg = document.getElementById("msg");
+            msg.innerText = "Submitting...";
+            const data = {
+                email: document.getElementById("email").value.trim(),
+                xusername: document.getElementById("xusername").value.trim(),
+                wallet: document.getElementById("wallet").value.trim(),
+                followed: document.getElementById("follow").checked,
+                liked_retweet: document.getElementById("retweet").checked,
+                source: "webform"
+            };
+            try {
+                const res = await fetch(ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    msg.style.color = "#00ffb2";
+                    msg.innerText = "✅ Submission recorded successfully!";
+                    btn.disabled = true;
+                } else {
+                    msg.style.color = "#ff4f4f";
+                    msg.innerText = "⚠ " + json.error;
+                }
+            } catch (e) {
+                msg.style.color = "#ff4f4f";
+                msg.innerText = "⚠ Network error";
+            }
+        };
+    </script>
+</body>
+</html>
